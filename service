@@ -1,0 +1,98 @@
+using bs.Data;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using System.Windows.Threading;
+
+namespace bs
+{
+    public partial class UpcomingAppointmentsWindow : Window
+    {
+        private readonly DbContext _db;
+        private readonly DispatcherTimer _timer;
+
+        public UpcomingAppointmentsWindow(DbContext db)
+        {
+            InitializeComponent();
+            _db = db;
+            LoadData();
+
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+            _timer.Tick += (s, e) => LoadData();
+            _timer.Start();
+            Closed += (s, e) => _timer.Stop();
+        }
+
+        private void LoadData()
+        {
+            var list = _db.GetUpcomingAppointments();
+            var now = DateTime.Now;
+
+            foreach (var a in list)
+            {
+                var left = a.StartTime - now;
+                if (left.TotalSeconds < 0) left = TimeSpan.Zero;
+                a.TimeLeft = $"{(int)left.TotalHours} ч. {left.Minutes} мин.";
+                a.RowColor = left.TotalHours < 1
+                    ? System.Windows.Media.Brushes.LightCoral
+                    : System.Windows.Media.Brushes.Transparent;
+            }
+
+            dgAppointments.ItemsSource = new ObservableCollection<dynamic>(list);
+        }
+    }
+}
+
+<Window x:Class="bs.UpcomingAppointmentsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ближайшие записи (сегодня и завтра)"
+        Height="500" Width="900"
+        FontFamily="Tahoma" Background="White"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Background="#E1E4FF" Padding="10">
+            <TextBlock Text="Ближайшие записи (обновление каждые 30 секунд)"
+                       FontSize="16" FontWeight="Bold"/>
+        </Border>
+
+        <DataGrid Grid.Row="1" x:Name="dgAppointments" AutoGenerateColumns="False"
+                  IsReadOnly="True" Margin="10" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Услуга" Binding="{Binding Service.Title}" Width="200"/>
+                <DataGridTextColumn Header="Клиент" Binding="{Binding Client.FullName}" Width="200"/>
+                <DataGridTextColumn Header="Email" Binding="{Binding Client.Email}" Width="180"/>
+                <DataGridTextColumn Header="Телефон" Binding="{Binding Client.Phone}" Width="150"/>
+                <DataGridTextColumn Header="Дата и время"
+                                    Binding="{Binding StartTime, StringFormat=dd.MM.yyyy HH:mm}" Width="140"/>
+                <DataGridTextColumn Header="Осталось" Binding="{Binding TimeLeft}" Width="120"/>
+            </DataGrid.Columns>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Background" Value="{Binding RowColor}"/>
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+    </Grid>
+</Window>
+
+private void BtnUpcoming_Click(object sender, RoutedEventArgs e)
+{
+    new UpcomingAppointmentsWindow(_db).Show();
+}
