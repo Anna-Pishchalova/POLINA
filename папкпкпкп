@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Оборотные средства: Платформер знаний</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0b0e1a;
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            color: #e0e6ff;
+        }
+
+        .game-wrapper {
+            max-width: 1100px;
+            width: 100%;
+            background: #12182b;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 0 2px #2a3a6a inset;
+            padding: 18px;
+            position: relative;
+            border: 1px solid #4a5f9e;
+            transition: all 0.2s;
+        }
+
+        /* fantasy dark theme */
+        .header-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 8px 12px;
+            background: #0f1422;
+            border-radius: 24px;
+            border: 1px solid #4a5f9e;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5), 0 0 15px #3a4a8a33;
+        }
+
+        .game-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #d4b483, #f0e6c5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 8px #b8945c80;
+            letter-spacing: 1px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .stat-badge {
+            background: #1b2340;
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid #7c8fc0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #c0d0ff;
+            box-shadow: 0 0 10px #2f3f7a;
+        }
+
+        .stat-badge span {
+            color: #f5e3a8;
+            font-weight: 800;
+            margin-left: 6px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 14px;
+            background: #0b0f1c;
+            border-radius: 20px;
+            margin: 10px 0 16px 0;
+            border: 1px solid #3a4a8a;
+            overflow: hidden;
+            box-shadow: inset 0 2px 6px black;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #b8860b, #ffd966, #b8860b);
+            border-radius: 20px;
+            box-shadow: 0 0 12px #f0c060;
+            transition: width 0.4s ease;
+        }
+
+        .game-area {
+            display: flex;
+            flex-direction: row;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .canvas-section {
+            flex: 2;
+            min-width: 300px;
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 2px solid #4a5f9e;
+            box-shadow: 0 0 25px #1f2b4e, inset 0 0 20px #00000066;
+            background: #0a0e18;
+        }
+
+        canvas#gameCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+            background: radial-gradient(circle at 20% 30%, #16213e, #0a0e18);
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+
+        .question-panel {
+            flex: 1.2;
+            min-width: 280px;
+            background: #0f1422;
+            border-radius: 24px;
+            padding: 18px;
+            border: 1px solid #4a5f9e;
+            box-shadow: 0 0 20px #1f2b4e;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            line-height: 1.5;
+            color: #e0e6ff;
+            background: #1a2140;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-left: 6px solid #b8860b;
+            min-height: 90px;
+            box-shadow: 0 2px 10px black;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: #1b2340;
+            border: 2px solid #3a4f8a;
+            color: #d0daff;
+            padding: 12px 14px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #0a0e18;
+            letter-spacing: 0.3px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #2a3460;
+            border-color: #b8945c;
+            box-shadow: 0 0 12px #b8860b80, 0 4px 0 #0a0e18;
+            color: #fff3d0;
+            transform: scale(1.01);
+        }
+
+        .option-btn.correct {
+            background: #1e5e3a;
+            border-color: #8bc34a;
+            box-shadow: 0 0 16px #8bc34a;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background: #5e1e2e;
+            border-color: #c34a4a;
+            box-shadow: 0 0 16px #c34a4a;
+            color: white;
+        }
+
+        .option-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .feedback-message {
+            font-size: 0.95rem;
+            padding: 8px 12px;
+            border-radius: 30px;
+            text-align: center;
+            font-weight: 500;
+            min-height: 40px;
+            color: #f0e6c5;
+        }
+
+        .achievements-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+            justify-content: center;
+        }
+
+        .badge {
+            background: #1e2340;
+            border-radius: 50px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            border: 1px solid #b8945c;
+            color: #f5e3a8;
+            box-shadow: 0 0 8px #b8860b55;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s;
+            opacity: 0.6;
+        }
+
+        .badge.unlocked {
+            opacity: 1;
+            background: #2a3a6a;
+            border-color: #ffd966;
+            box-shadow: 0 0 16px #ffd966;
+            color: #fff3d0;
+            font-weight: 600;
+        }
+
+        .badge-icon {
+            font-size: 1rem;
+        }
+
+        .btn-restart {
+            background: #2a2340;
+            border: 2px solid #b8860b;
+            color: #f5e3a8;
+            padding: 10px 18px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #4a3a1a;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-restart:hover {
+            background: #3f2f4a;
+            box-shadow: 0 0 20px #b8860b;
+            transform: scale(1.02);
+        }
+
+        .footer-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding: 0 8px;
+            font-size: 0.85rem;
+            color: #8a9ad0;
+        }
+
+        /* Адаптив */
+        @media (max-width: 750px) {
+            .game-wrapper {
+                padding: 12px;
+                border-radius: 24px;
+            }
+            .game-title {
+                font-size: 1rem;
+            }
+            .stats {
+                gap: 8px;
+            }
+            .stat-badge {
+                padding: 4px 10px;
+                font-size: 0.8rem;
+            }
+            .question-text {
+                font-size: 1rem;
+                padding: 10px;
+                min-height: 70px;
+            }
+            .option-btn {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+            .game-area {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-panel {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="game-wrapper">
+    <!-- Шапка с прогрессом и счётом -->
+    <div class="header-panel">
+        <div class="game-title">🏰 ОБОРОТНЫЕ СРЕДСТВА</div>
+        <div class="stats">
+            <div class="stat-badge">Счёт <span id="scoreDisplay">0</span></div>
+            <div class="stat-badge">Задание <span id="levelDisplay">1/15</span></div>
+        </div>
+    </div>
+
+    <!-- Индикатор прогресса -->
+    <div class="progress-bar-container">
+        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+    </div>
+
+    <!-- Основная игровая зона -->
+    <div class="game-area">
+        <!-- Canvas для платформера / визуализации -->
+        <div class="canvas-section">
+            <canvas id="gameCanvas" width="800" height="450"></canvas>
+        </div>
+
+        <!-- Панель с вопросом и вариантами -->
+        <div class="question-panel">
+            <div class="question-text" id="questionText">Загрузка вопроса...</div>
+            <div class="options-grid" id="optionsContainer"></div>
+            <div class="feedback-message" id="feedbackMessage">Выберите правильный ответ</div>
+            
+            <!-- Достижения и значки -->
+            <div class="achievements-area" id="achievementsContainer">
+                <div class="badge" id="badgeFirst"><span class="badge-icon">🏅</span> Первый шаг</div>
+                <div class="badge" id="badgeStreak"><span class="badge-icon">🔥</span> 3 подряд</div>
+                <div class="badge" id="badgeMaster"><span class="badge-icon">👑</span> Мастер</div>
+            </div>
+
+            <button class="btn-restart" id="restartBtn">🔄 Начать заново</button>
+        </div>
+    </div>
+
+    <div class="footer-info">
+        <span>Тема: Оборотные средства организации</span>
+        <span>18+ | Сложный уровень</span>
+    </div>
+</div>
+
+<script>
+    // ==================== ИГРОВЫЕ ДАННЫЕ ====================
+    // 15 вопросов по теме "Оборотные средства организации" (возраст 18+, сложный)
+    const questions = [
+        {
+            q: "Что входит в состав оборотных производственных фондов?",
+            options: [
+                "Здания, сооружения, оборудование",
+                "Производственные запасы, незавершённое производство, расходы будущих периодов",
+                "Готовая продукция, денежные средства, дебиторская задолженность",
+                "Транспортные средства, инструменты, инвентарь"
+            ],
+            correct: 1,
+            explanation: "Оборотные производственные фонды включают производственные запасы, незавершённое производство и расходы будущих периодов."
+        },
+        {
+            q: "По источникам формирования оборотные средства делятся на:",
+            options: [
+                "Собственные, заёмные и привлечённые",
+                "Нормируемые и ненормируемые",
+                "Постоянные и переменные",
+                "Ликвидные и неликвидные"
+            ],
+            correct: 0,
+            explanation: "Классификация по источникам: собственные, заёмные и привлечённые."
+        },
+        {
+            q: "Что относится к нормируемым оборотным средствам?",
+            options: [
+                "Денежные средства на расчётном счёте",
+                "Дебиторская задолженность",
+                "Производственные запасы и готовая продукция",
+                "Краткосрочные финансовые вложения"
+            ],
+            correct: 2,
+            explanation: "Нормируемые: запасы (сырьё, материалы, готовая продукция) и незавершённое производство."
+        },
+        {
+            q: "Формула норматива оборотных средств в производственных запасах:",
+            options: [
+                "Н = Р × Д, где Р – среднесуточный расход, Д – норма запаса в днях",
+                "Н = Ц × К, где Ц – цена, К – количество",
+                "Н = О × С, где О – остаток, С – себестоимость",
+                "Н = В / Т, где В – выручка, Т – период"
+            ],
+            correct: 0,
+            explanation: "Норматив = среднесуточный расход × норма запаса в днях."
+        },
+        {
+            q: "Какой запас создаётся на время приёмки, разгрузки и подготовки материалов к производству?",
+            options: [
+                "Текущий запас",
+                "Страховой запас",
+                "Подготовительный запас",
+                "Технологический запас"
+            ],
+            correct: 2,
+            explanation: "Подготовительный запас — для приёмки, разгрузки, сортировки."
+        },
+        {
+            q: "Что такое кассовый разрыв?",
+            options: [
+                "Превышение доходов над расходами",
+                "Временная нехватка денежных средств для покрытия обязательств",
+                "Разница между дебиторской и кредиторской задолженностью",
+                "Недостаток оборотных средств в производстве"
+            ],
+            correct: 1,
+            explanation: "Кассовый разрыв — временный дефицит денежных средств."
+        },
+        {
+            q: "Какая группа активов по ликвидности включает денежные средства и краткосрочные финансовые вложения?",
+            options: [
+                "Наиболее ликвидные активы (А1)",
+                "Быстро реализуемые активы (А2)",
+                "Медленно реализуемые активы (А3)",
+                "Трудно реализуемые активы (А4)"
+            ],
+            correct: 0,
+            explanation: "А1 — наиболее ликвидные: деньги и краткосрочные вложения."
+        },
+        {
+            q: "Что из перечисленного является методом нормирования оборотных средств?",
+            options: [
+                "Метод прямого счёта, аналитический, коэффициентный",
+                "Метод FIFO, LIFO, средневзвешенной",
+                "Метод дисконтирования, капитализации",
+                "Метод экспертных оценок, SWOT-анализ"
+            ],
+            correct: 0,
+            explanation: "Основные методы: прямого счёта, аналитический, коэффициентный."
+        },
+        {
+            q: "Что показывает коэффициент оборачиваемости оборотных средств?",
+            options: [
+                "Сколько оборотов совершают оборотные средства за период",
+                "Длительность одного оборота в днях",
+                "Размер прибыли на рубль оборотных средств",
+                "Долю оборотных средств в активах"
+            ],
+            correct: 0,
+            explanation: "Коэффициент оборачиваемости = выручка / средний остаток оборотных средств."
+        },
+        {
+            q: "Технологический запас создаётся:",
+            options: [
+                "На случай сбоев в поставках",
+                "Для обеспечения бесперебойной работы при подготовке к производству",
+                "На время нахождения материалов в производстве",
+                "Для покрытия разницы между поставками"
+            ],
+            correct: 1,
+            explanation: "Технологический запас — время на подготовку к производству (сушка, нагрев и т.п.)."
+        },
+        {
+            q: "Что такое платёжный календарь?",
+            options: [
+                "График платежей и поступлений денежных средств",
+                "Список дебиторов",
+                "План производства",
+                "Отчёт о прибылях и убытках"
+            ],
+            correct: 0,
+            explanation: "Платёжный календарь — график предстоящих платежей и поступлений."
+        },
+        {
+            q: "Какие меры помогают преодолеть кассовый разрыв?",
+            options: [
+                "Увеличение дебиторской задолженности",
+                "Привлечение краткосрочного кредита, ускорение поступлений, отсрочка платежей",
+                "Сокращение объёмов производства",
+                "Увеличение запасов"
+            ],
+            correct: 1,
+            explanation: "Кредит, факторинг, ускорение инкассации, реструктуризация платежей."
+        },
+        {
+            q: "Дебиторская задолженность относится к:",
+            options: [
+                "Оборотным активам",
+                "Внеоборотным активам",
+                "Собственному капиталу",
+                "Долгосрочным обязательствам"
+            ],
+            correct: 0,
+            explanation: "Дебиторская задолженность — часть оборотных активов."
+        },
+        {
+            q: "Какая формула используется для расчёта норматива оборотных средств в незавершённом производстве?",
+            options: [
+                "Н = (В × Т × К) / Д, где В – выпуск, Т – длительность цикла, К – коэффициент нарастания затрат, Д – дни",
+                "Н = Р × Д",
+                "Н = З × С",
+                "Н = О × Ц"
+            ],
+            correct: 0,
+            explanation: "Норматив НЗП = (выпуск × длительность цикла × коэффициент нарастания затрат) / число дней."
+        },
+        {
+            q: "Что относится к быстро реализуемым активам (А2)?",
+            options: [
+                "Денежные средства",
+                "Дебиторская задолженность (срок до 12 мес.) и готовая продукция",
+                "Сырьё и материалы",
+                "Основные средства"
+            ],
+            correct: 1,
+            explanation: "А2 — дебиторская задолженность (краткосрочная) и готовая продукция."
+        }
+    ];
+
+    // ==================== СОСТОЯНИЕ ИГРЫ ====================
+    let currentLevel = 0;              // индекс текущего вопроса (0..14)
+    let score = 0;
+    let correctStreak = 0;            // для достижения "3 подряд"
+    let totalCorrect = 0;
+    let achievements = {
+        first: false,      // первый правильный ответ
+        streak: false,     // 3 правильных подряд
+        master: false      // 10 правильных ответов (мастер)
+    };
+    let answered = false;             // защита от двойного ответа
+    let gameCompleted = false;
+
+    // Для canvas-анимации (простой платформер-фон)
+    let canvas, ctx;
+    let animationFrame;
+    let particles = [];
+    let platformOffset = 0;
+
+    // DOM элементы
+    const questionTextEl = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const levelDisplay = document.getElementById('levelDisplay');
+    const progressFill = document.getElementById('progressFill');
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    const badgeFirst = document.getElementById('badgeFirst');
+    const badgeStreak = document.getElementById('badgeStreak');
+    const badgeMaster = document.getElementById('badgeMaster');
+    const restartBtn = document.getElementById('restartBtn');
+
+    // ==================== ИНИЦИАЛИЗАЦИЯ CANVAS ====================
+    function initCanvas() {
+        canvas = document.getElementById('gameCanvas');
+        ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 450;
+        // Запуск анимации фона
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+        animateCanvas();
+    }
+
+    // Анимация: парящие частицы / платформы (создаёт fantasy атмосферу)
+    function animateCanvas() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Градиентный фон
+        const grad = ctx.createRadialGradient(400, 200, 50, 400, 250, 600);
+        grad.addColorStop(0, '#1a2540');
+        grad.addColorStop(0.7, '#0b0f1c');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // "Звёзды"
+        ctx.fillStyle = '#ffffff22';
+        for (let i = 0; i < 80; i++) {
+            if (!particles[i]) {
+                particles[i] = {
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    r: Math.random() * 2 + 0.5,
+                    speed: Math.random() * 0.3 + 0.1,
+                    alpha: Math.random() * 0.5 + 0.3
+                };
+            }
+            const p = particles[i];
+            p.y -= p.speed;
+            if (p.y < 0) {
+                p.y = canvas.height;
+                p.x = Math.random() * canvas.width;
+            }
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(200, 220, 255, ${p.alpha})`;
+            ctx.fill();
+        }
+
+        // Парящие платформы (декоративные)
+        ctx.shadowColor = '#b8860b';
+        ctx.shadowBlur = 12;
+        for (let i = 0; i < 3; i++) {
+            let baseX = (i * 250 + platformOffset) % 900 - 150;
+            let baseY = 320 + Math.sin(Date.now() / 1000 + i) * 10;
+            ctx.fillStyle = '#2a3a6a';
+            ctx.strokeStyle = '#b8945c';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(baseX, baseY, 110, 16, 8);
+            ctx.fill();
+            ctx.stroke();
+        }
+        platformOffset += 0.3;
+        if (platformOffset > 300) platformOffset = 0;
+
+        // Надпись (мотивационная)
+        ctx.shadowBlur = 18;
+        ctx.shadowColor = '#f0c060';
+        ctx.font = 'bold 22px "Segoe UI", system-ui, sans-serif';
+        ctx.fillStyle = '#f5e3a8';
+        ctx.textAlign = 'center';
+        ctx.fillText('🏆 Платформер знаний', 400, 80);
+        ctx.font = '16px "Segoe UI", sans-serif';
+        ctx.fillStyle = '#b0c0ff';
+        ctx.fillText('Оборотные средства организации', 400, 120);
+
+        animationFrame = requestAnimationFrame(animateCanvas);
+    }
+
+    // ==================== ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ====================
+    function updateUI() {
+        // Счёт
+        scoreDisplay.textContent = score;
+        // Уровень
+        levelDisplay.textContent = `${currentLevel + 1}/${questions.length}`;
+        // Прогресс
+        const progressPercent = ((currentLevel) / questions.length) * 100;
+        progressFill.style.width = progressPercent + '%';
+        // Достижения
+        badgeFirst.classList.toggle('unlocked', achievements.first);
+        badgeStreak.classList.toggle('unlocked', achievements.streak);
+        badgeMaster.classList.toggle('unlocked', achievements.master);
+    }
+
+    // ==================== ЗАГРУЗКА ВОПРОСА ====================
+    function loadQuestion() {
+        if (currentLevel >= questions.length) {
+            // Игра завершена
+            gameCompleted = true;
+            questionTextEl.textContent = '🎉 Поздравляем! Вы прошли все 15 заданий!';
+            optionsContainer.innerHTML = '';
+            feedbackMessage.textContent = `Итоговый счёт: ${score}. Вы настоящий мастер оборотных средств!`;
+            progressFill.style.width = '100%';
+            levelDisplay.textContent = '15/15';
+            return;
+        }
+
+        const qData = questions[currentLevel];
+        questionTextEl.textContent = qData.q;
+
+        // Очистка и создание кнопок
+        optionsContainer.innerHTML = '';
+        qData.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.dataset.index = index;
+            btn.addEventListener('click', () => handleAnswer(index, btn));
+            optionsContainer.appendChild(btn);
+        });
+
+        answered = false;
+        feedbackMessage.textContent = 'Выберите ответ.';
+        updateUI();
+    }
+
+    // ==================== ОБРАБОТКА ОТВЕТА ====================
+    function handleAnswer(selectedIndex, btn) {
+        if (answered || gameCompleted) return;
+        answered = true;
+
+        const qData = questions[currentLevel];
+        const allBtns = optionsContainer.querySelectorAll('.option-btn');
+        // Блокируем все кнопки
+        allBtns.forEach(b => b.disabled = true);
+
+        const isCorrect = selectedIndex === qData.correct;
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            // Начисление очков (базовый подсчёт: 10 очков за правильный ответ)
+            score += 10;
+            totalCorrect++;
+            correctStreak++;
+
+            // Проверка достижений
+            if (!achievements.first) {
+                achievements.first = true;
+                feedbackMessage.textContent = '🏅 Достижение: Первый шаг! +10 очков';
+            } else {
+                feedbackMessage.textContent = '✅ Верно! +10 очков';
+            }
+
+            if (correctStreak >= 3 && !achievements.streak) {
+                achievements.streak = true;
+                feedbackMessage.textContent += ' 🔥 Достижение: 3 подряд!';
+            }
+
+            if (totalCorrect >= 10 && !achievements.master) {
+                achievements.master = true;
+                feedbackMessage.textContent += ' 👑 Достижение: Мастер!';
+            }
+
+        } else {
+            btn.classList.add('wrong');
+            // Подсветить правильный
+            allBtns[qData.correct].classList.add('correct');
+            correctStreak = 0;
+            feedbackMessage.textContent = `❌ Неверно. Правильный ответ: ${qData.options[qData.correct]}`;
+        }
+
+        // Дополнительная информация (объяснение) — выводим в feedback, но не перегружаем
+        if (qData.explanation) {
+            feedbackMessage.textContent += ' ' + qData.explanation;
+        }
+
+        // Обновляем счёт и прогресс
+        updateUI();
+
+        // Переход к следующему вопросу через задержку (чтобы увидеть результат)
+        setTimeout(() => {
+            if (currentLevel < questions.length - 1) {
+                currentLevel++;
+                loadQuestion();
+            } else {
+                // Последний вопрос отвечен
+                currentLevel++;
+                updateUI();
+                // Завершение игры
+                gameCompleted = true;
+                questionTextEl.textContent = '🎉 Поздравляем! Вы прошли все 15 заданий!';
+                optionsContainer.innerHTML = '';
+                feedbackMessage.textContent = `Итоговый счёт: ${score}. Вы настоящий мастер оборотных средств!`;
+                progressFill.style.width = '100%';
+                levelDisplay.textContent = '15/15';
+            }
+        }, 1200);
+    }
+
+    // ==================== СБРОС ИГРЫ ====================
+    function resetGame() {
+        currentLevel = 0;
+        score = 0;
+        correctStreak = 0;
+        totalCorrect = 0;
+        achievements = { first: false, streak: false, master: false };
+        answered = false;
+        gameCompleted = false;
+
+        // Сброс интерфейса
+        updateUI();
+        loadQuestion();
+        feedbackMessage.textContent = 'Выберите правильный ответ';
+
+        // Сброс canvas (перезапуск анимации)
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+        particles = [];
+        platformOffset = 0;
+        initCanvas();
+    }
+
+    // ==================== СОХРАНЕНИЕ ПРОГРЕССА В LOCALSTORAGE ====================
+    function saveProgress() {
+        // Для простоты сохраняем только текущий счёт и уровень при завершении,
+        // но по ТЗ требуется локальное сохранение прогресса.
+        // Реализуем сохранение после каждого ответа (можно и чаще).
+        const state = {
+            currentLevel,
+            score,
+            totalCorrect,
+            achievements,
+            gameCompleted
+        };
+        localStorage.setItem('workingCapitalGame', JSON.stringify(state));
+    }
+
+    function loadProgressFromStorage() {
+        const saved = localStorage.getItem('workingCapitalGame');
+        if (saved) {
+            try {
+                const state = JSON.parse(saved);
+                // Восстанавливаем только если игра не была завершена? 
+                // Можно восстановить, но для демонстрации - если игра завершена, лучше начать заново.
+                // Для образовательной игры: дадим возможность продолжить.
+                if (state && state.currentLevel < questions.length) {
+                    currentLevel = state.currentLevel || 0;
+                    score = state.score || 0;
+                    totalCorrect = state.totalCorrect || 0;
+                    achievements = state.achievements || { first: false, streak: false, master: false };
+                    gameCompleted = state.gameCompleted || false;
+                    // Перезагрузим вопрос
+                    updateUI();
+                    loadQuestion();
+                    return true;
+                }
+            } catch (e) {
+                console.warn('Ошибка загрузки прогресса', e);
+            }
+        }
+        return false;
+    }
+
+    // Сохраняем прогресс после каждого ответа (вызовем в handleAnswer)
+    // Добавим вызов saveProgress в конце handleAnswer после обновления счёта.
+    // Модифицируем handleAnswer (перезапишем функцию с сохранением)
+    const originalHandleAnswer = handleAnswer;
+    handleAnswer = function(selectedIndex, btn) {
+        if (answered || gameCompleted) return;
+        // Вызываем оригинальную логику
+        const qData = questions[currentLevel];
+        const allBtns = optionsContainer.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.disabled = true);
+        answered = true;
+
+        const isCorrect = selectedIndex === qData.correct;
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            score += 10;
+            totalCorrect++;
+            correctStreak++;
+            if (!achievements.first) { achievements.first = true; feedbackMessage.textContent = '🏅 Достижение: Первый шаг! +10 очков'; }
+            else { feedbackMessage.textContent = '✅ Верно! +10 очков'; }
+            if (correctStreak >= 3 && !achievements.streak) { achievements.streak = true; feedbackMessage.textContent += ' 🔥 Достижение: 3 подряд!'; }
+            if (totalCorrect >= 10 && !achievements.master) { achievements.master = true; feedbackMessage.textContent += ' 👑 Достижение: Мастер!'; }
+        } else {
+            btn.classList.add('wrong');
+            allBtns[qData.correct].classList.add('correct');
+            correctStreak = 0;
+            feedbackMessage.textContent = `❌ Неверно. Правильный ответ: ${qData.options[qData.correct]}`;
+        }
+
+        if (qData.explanation) feedbackMessage.textContent += ' ' + qData.explanation;
+
+        updateUI();
+        saveProgress(); // сохраняем прогресс
+
+        setTimeout(() => {
+            if (currentLevel < questions.length - 1) {
+                currentLevel++;
+                loadQuestion();
+                saveProgress(); // сохраняем и новый уровень
+            } else {
+                currentLevel++;
+                updateUI();
+                gameCompleted = true;
+                questionTextEl.textContent = '🎉 Поздравляем! Вы прошли все 15 заданий!';
+                optionsContainer.innerHTML = '';
+                feedbackMessage.textContent = `Итоговый счёт: ${score}. Вы настоящий мастер оборотных средств!`;
+                progressFill.style.width = '100%';
+                levelDisplay.textContent = '15/15';
+                saveProgress();
+            }
+        }, 1200);
+    };
+
+    // Перезапишем loadQuestion, чтобы при загрузке обновлять UI и сохранять
+    const originalLoadQuestion = loadQuestion;
+    loadQuestion = function() {
+        if (currentLevel >= questions.length) {
+            gameCompleted = true;
+            questionTextEl.textContent = '🎉 Поздравляем! Вы прошли все 15 заданий!';
+            optionsContainer.innerHTML = '';
+            feedbackMessage.textContent = `Итоговый счёт: ${score}. Вы настоящий мастер оборотных средств!`;
+            progressFill.style.width = '100%';
+            levelDisplay.textContent = '15/15';
+            saveProgress();
+            return;
+        }
+        const qData = questions[currentLevel];
+        questionTextEl.textContent = qData.q;
+        optionsContainer.innerHTML = '';
+        qData.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt;
+            btn.dataset.index = index;
+            btn.addEventListener('click', () => handleAnswer(index, btn));
+            optionsContainer.appendChild(btn);
+        });
+        answered = false;
+        feedbackMessage.textContent = 'Выберите ответ.';
+        updateUI();
+        saveProgress();
+    };
+
+    // ==================== СТАРТ ====================
+    window.addEventListener('load', () => {
+        initCanvas();
+
+        // Пытаемся восстановить прогресс
+        const restored = loadProgressFromStorage();
+        if (!restored) {
+            resetGame(); // начинает с 0 уровня
+        } else {
+            updateUI();
+            // Если игра была завершена, покажем финальный экран
+            if (gameCompleted) {
+                questionTextEl.textContent = '🎉 Поздравляем! Вы прошли все 15 заданий!';
+                optionsContainer.innerHTML = '';
+                feedbackMessage.textContent = `Итоговый счёт: ${score}. Вы настоящий мастер оборотных средств!`;
+                progressFill.style.width = '100%';
+                levelDisplay.textContent = '15/15';
+            } else {
+                loadQuestion();
+            }
+        }
+
+        // Кнопка перезапуска
+        restartBtn.addEventListener('click', () => {
+            resetGame();
+            saveProgress();
+        });
+
+        // Сохраняем прогресс перед закрытием
+        window.addEventListener('beforeunload', () => {
+            saveProgress();
+        });
+    });
+
+    // Полифилл для roundRect (для старых браузеров)
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+            if (w < 2 * r) r = w / 2;
+            if (h < 2 * r) r = h / 2;
+            this.moveTo(x + r, y);
+            this.lineTo(x + w - r, y);
+            this.quadraticCurveTo(x + w, y, x + w, y + r);
+            this.lineTo(x + w, y + h - r);
+            this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            this.lineTo(x + r, y + h);
+            this.quadraticCurveTo(x, y + h, x, y + h - r);
+            this.lineTo(x, y + r);
+            this.quadraticCurveTo(x, y, x + r, y);
+            return this;
+        };
+    }
+</script>
+</body>
+</html>
